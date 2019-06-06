@@ -317,8 +317,25 @@ func findObject(pd *container, path string) (container, string) {
 	var err error
 
 	for _, part := range parts {
+		var next *lazyNode
+		var ok error
 
-		next, ok := doc.get(decodePatchKey(part))
+		if strings.Contains(part, "=") {
+			split = strings.Split(part, "=")
+			// if len(split) < 2 {
+			// 	return nil, ""
+			// }
+			next, _ = doc.get(decodePatchKey(split[0]))
+			// if value is string compare strngs,
+			x := next.raw
+			wtf, _ := x.MarshalJSON()
+			if string(wtf) != fmt.Sprintf(`"%s"`, split[1]) {
+				return nil, ""
+			}
+			// if value is numeric, convert and compare
+		} else {
+			next, ok = doc.get(decodePatchKey(part))
+		}
 
 		if next == nil || ok != nil {
 			return nil, ""
@@ -339,6 +356,7 @@ func findObject(pd *container, path string) (container, string) {
 		}
 	}
 
+	fmt.Println("gonna return, key is: ", key)
 	return doc, decodePatchKey(key)
 }
 
