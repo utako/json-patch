@@ -224,6 +224,11 @@ var Cases = []Case{
 		   { "op": "copy", "path": "/foo/-", "from": "/foo/1" }]`,
 		fmt.Sprintf(`{ "foo": ["A", %q, %q, %q] }`, repeatedA(48), repeatedA(48), repeatedA(48)),
 	},
+	{
+		`{ "bar": [{"baz": "foo" }]}`,
+		`[ { "op": "replace", "path": "/bar/baz=foo/baz", "value": "fizz" } ]`,
+		`{ "bar": [{"baz": "fizz"}]}`,
+	},
 }
 
 type BadCase struct {
@@ -331,6 +336,11 @@ var BadCases = []BadCase{
 	{
 		`{ "foo": [ "all", "grass", "cows", "eat" ] }`,
 		`[ { "op": "move", "from": "/foo/1", "path": "/foo/4" } ]`,
+	},
+	// Filter values must be unique
+	{
+		`{ "bar": [{"baz": "foo" }, {"baz": "foo" }]}`,
+		`[ { "op": "replace", "path": "/bar/baz=foo/baz", "value": "fizz" } ]`,
 	},
 }
 

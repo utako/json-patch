@@ -301,6 +301,17 @@ Loop:
 	return false
 }
 
+func partIsFilter(part string) (string, string, bool) {
+	if strings.Contains(part, "=") {
+		split := strings.Split(part, "=")
+		if len(split) < 2 {
+			panic("i'm afraid i can't do that dave") // TODO!!!
+		}
+		return split[0], split[1], true
+	}
+	return "", "", false
+}
+
 func findObject(pd *container, path string) (container, string) {
 	doc := *pd
 
@@ -317,10 +328,24 @@ func findObject(pd *container, path string) (container, string) {
 	var err error
 
 	for _, part := range parts {
-
 		next, ok := doc.get(decodePatchKey(part))
 
-		if next == nil || ok != nil {
+		var matchingNodes int
+		if k, v, isFilter := partIsFilter(part); isFilter {
+			nodes, _ := doc.(*partialArray)
+			for _, node := range *nodes {
+				nodeDoc, _ := node.intoDoc()
+				valueNode, _ := nodeDoc.get(k)
+				actualValue, _ := valueNode.MarshalJSON()
+				if bytes.Equal(actualValue, []byte(v)) || string(actualValue) == fmt.Sprintf(`"%s"`, v) {
+					next = node
+					ok = nil
+					matchingNodes++
+				}
+			}
+		}
+
+		if next == nil || ok != nil || matchingNodes > 1 {
 			return nil, ""
 		}
 
@@ -490,7 +515,6 @@ func (p Patch) replace(doc *container, op operation) error {
 	path := op.path()
 
 	con, key := findObject(doc, path)
-
 	if con == nil {
 		return fmt.Errorf("jsonpatch replace operation does not apply: doc is missing path: %s", path)
 	}
@@ -645,8 +669,6 @@ func (p Patch) ApplyIndent(doc []byte, indent string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	err = nil
 
 	var accumulatedCopySize int64
 
