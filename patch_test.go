@@ -229,6 +229,31 @@ var Cases = []Case{
 		`[ { "op": "replace", "path": "/bar/baz=foo/baz", "value": "fizz" } ]`,
 		`{ "bar": [{"baz": "fizz"}]}`,
 	},
+	{
+		`{ "bar": [{"baz": "foo" }]}`,
+		`[ { "op": "replace", "path": "/bar/baz=foo/baz", "value": 1 } ]`,
+		`{ "bar": [{"baz": 1 }]}`,
+	},
+	{
+		`{ "bar": [{"baz": "foo" }]}`,
+		`[ { "op": "replace", "path": "/bar/baz=foo/baz", "value": false } ]`,
+		`{ "bar": [{"baz": false }]}`,
+	},
+	{
+		`{ "bar": [{"baz": "foo" }]}`,
+		`[ { "op": "replace", "path": "/bar/baz=foo/baz", "value": { "child": "buzz" } } ]`,
+		`{ "bar": [{"baz": { "child": "buzz" }}]}`,
+	},
+	{
+		`{ "bar": [{"baz": "foo", "other": { "child": "fizz" }}]}`,
+		`[ { "op": "replace", "path": "/bar/baz=foo/other/child", "value": "buzz" } ]`,
+		`{ "bar": [{"baz": "foo", "other": { "child": "buzz" }}]}`,
+	},
+	{
+		`{ "bar": [{"baz": "foo", "other": [ { "child": "fizz" }]}]}`,
+		`[ { "op": "replace", "path": "/bar/baz=foo/other/0", "value": { "child": "buzz" } } ]`,
+		`{ "bar": [{"baz": "foo", "other": [ { "child": "buzz" }]}]}`,
+	},
 }
 
 type BadCase struct {
